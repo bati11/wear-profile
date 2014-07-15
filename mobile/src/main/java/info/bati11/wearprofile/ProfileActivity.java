@@ -17,6 +17,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,7 +41,10 @@ import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
 
-public class ProfileActivity extends Activity {
+public class ProfileActivity extends Activity
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private GoogleApiClient mGoogleApiClient;
 
     private EditText editText;
     private Button button;
@@ -40,6 +55,13 @@ public class ProfileActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
 
         final LinearLayout layout = (LinearLayout)findViewById(R.id.layout);
         editText = (EditText)findViewById(R.id.editText);
@@ -75,6 +97,35 @@ public class ProfileActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d("TAG", "onConnected");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("TAG", "onConnectionSuspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e("TAG", "onConnectionFailed: " + connectionResult);
     }
 
     private class TwitterProfileTask extends AsyncTask<String, Integer, User> {
@@ -151,10 +202,43 @@ public class ProfileActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(Bitmap bitmap) {
+        protected void onPostExecute(final Bitmap bitmap) {
             ImageView imageView = new ImageView(context);
             imageView.setImageBitmap(bitmap);
+
+            Button button = new Button(context);
+            button.setText("sync wearable");
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile");
+                    DataMap dataMap = dataMapRequest.getDataMap();
+
+                    dataMap.putString("name", nameTextView.getText().toString());
+                    dataMap.putString("description", descriptionTextView.getText().toString());
+
+                    Asset asset = createAssetFromBitmap(bitmap);
+                    dataMap.putAsset("image", asset);
+
+                    PutDataRequest request = dataMapRequest.asPutDataRequest();
+                    PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+                    pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                        @Override
+                        public void onResult(DataApi.DataItemResult dataItemResult) {
+                            Log.d("TAG", "onResult: " + dataItemResult.getStatus());
+                        }
+                    });
+                }
+            });
+
             layout.addView(imageView);
+            layout.addView(button);
         }
+    }
+
+    private static Asset createAssetFromBitmap(Bitmap bitmap) {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
+        return Asset.createFromBytes(byteStream.toByteArray());
     }
 }
