@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -28,6 +29,8 @@ import com.google.android.gms.wearable.Wearable;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
+import info.bati11.wearprofile.fragments.ProfileFragment;
+
 public class ProfileActivity extends Activity
         implements GoogleApiClient.ConnectionCallbacks,
                    GoogleApiClient.OnConnectionFailedListener,
@@ -36,8 +39,7 @@ public class ProfileActivity extends Activity
     private GoogleApiClient mGoogleApiClient;
 
     private ViewGroup layout;
-    private TextView mTextView;
-    private TextView descriptionTextView;
+    private ProfileFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +58,6 @@ public class ProfileActivity extends Activity
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 layout = (ViewGroup) stub.findViewById(R.id.layout);
-                mTextView = (TextView) stub.findViewById(R.id.text);
-                descriptionTextView = (TextView) stub.findViewById(R.id.description);
             }
         });
     }
@@ -90,9 +90,9 @@ public class ProfileActivity extends Activity
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
                         DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
                         String name = dataMap.getString("name", "no name");
-                        String description = dataMap.getString("description", "");
-                        mTextView.setText(name);
-                        //descriptionTextView.setText(description);
+                        fragment = ProfileFragment.newInstance(name);
+                        getFragmentManager().beginTransaction()
+                                .add(R.id.layout, fragment).commit();
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                         final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
@@ -138,12 +138,16 @@ public class ProfileActivity extends Activity
                 if (event.getDataItem().getUri().getPath().equals("/profile/info")) {
                     DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
                     final String name = dataMap.getString("name");
-                    final String description = dataMap.getString("description");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mTextView.setText(name);
-                            //descriptionTextView.setText(description);
+                            if (fragment == null) {
+                                fragment = ProfileFragment.newInstance(name);
+                                getFragmentManager().beginTransaction()
+                                        .add(R.id.layout, fragment).commit();
+                            } else {
+                                fragment.changeProfileName(name);
+                            }
                         }
                     });
                 } else if (event.getDataItem().getUri().getPath().equals("/profile/image")) {
