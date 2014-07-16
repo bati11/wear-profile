@@ -72,6 +72,7 @@ public class ProfileActivity extends Activity
     protected void onPause() {
         super.onPause();
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            Wearable.DataApi.removeListener(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
     }
@@ -90,9 +91,13 @@ public class ProfileActivity extends Activity
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
                         DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
                         String name = dataMap.getString("name", "no name");
-                        fragment = ProfileFragment.newInstance(name);
-                        getFragmentManager().beginTransaction()
-                                .add(R.id.layout, fragment).commit();
+                        if (fragment == null) {
+                            fragment = ProfileFragment.newInstance(name);
+                            getFragmentManager().beginTransaction()
+                                    .add(R.id.layout, fragment).commit();
+                        } else {
+                            fragment.changeProfileName(name);
+                        }
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                         final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
@@ -111,6 +116,7 @@ public class ProfileActivity extends Activity
                         }.execute();
                     }
                 }
+                dataItems.close();
             }
         });
     }
@@ -128,6 +134,7 @@ public class ProfileActivity extends Activity
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d("TAG", "onDataChanged: " + dataEvents.getCount());
         for (DataEvent event : dataEvents) {
             if (event.getType() == DataEvent.TYPE_DELETED) {
                 Log.d("TAG", "DataItem deleted: " + event.getDataItem().getUri());
@@ -169,14 +176,11 @@ public class ProfileActivity extends Activity
         if (asset == null) {
             throw new IllegalArgumentException("Asset must be non-null");
         }
-        ConnectionResult result =
-                mGoogleApiClient.blockingConnect(5000, TimeUnit.MILLISECONDS);
-        if (!result.isSuccess()) {
+        if (!mGoogleApiClient.isConnected()) {
             return null;
         }
         InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
                 mGoogleApiClient, asset).await().getInputStream();
-        mGoogleApiClient.disconnect();
 
         if (assetInputStream == null) {
             Log.w("TAG", "Requested an unknown Asset.");

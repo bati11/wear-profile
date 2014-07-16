@@ -54,6 +54,8 @@ public class ProfileActivity extends Activity
     private ImageView imageView;
     private Button syncButton;
 
+    private Bitmap bitmap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -205,7 +207,9 @@ public class ProfileActivity extends Activity
         }
 
         @Override
-        protected void onPostExecute(final Bitmap bitmap) {
+        protected void onPostExecute(final Bitmap bm) {
+            bitmap = bm;
+
             if (imageView == null) {
                 imageView = new ImageView(context);
                 imageView.setImageBitmap(bitmap);
