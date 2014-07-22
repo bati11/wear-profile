@@ -16,17 +16,22 @@
         android:layout_height="wrap_content"
         android:id="@+id/textView" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/editText" />
-
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="load profile from twitter"
-        android:id="@+id/button"
+        android:id="@+id/load_button"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:text="name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/name_edit_text" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,4 +42,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/descriptionTextView" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="sync wearable"
+        android:id="@+id/sync_button"
+        android:layout_centerHorizontal="true" />
 </LinearLayout>

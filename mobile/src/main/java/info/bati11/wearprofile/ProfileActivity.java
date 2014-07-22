@@ -69,10 +69,11 @@ public class ProfileActivity extends Activity
                 .build();
 
         final LinearLayout layout = (LinearLayout)findViewById(R.id.layout);
-        editText = (EditText)findViewById(R.id.editText);
-        button = (Button)findViewById(R.id.button);
+        editText = (EditText)findViewById(R.id.name_edit_text);
+        button = (Button)findViewById(R.id.load_button);
         nameTextView = (TextView)findViewById(R.id.nameTextView);
         descriptionTextView = (TextView)findViewById(R.id.descriptionTextView);
+        syncButton = (Button)findViewById(R.id.sync_button);
 
         final Context context = this;
         button.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +82,41 @@ public class ProfileActivity extends Activity
                 ProfileImageTask profileImageTask = new ProfileImageTask(context, layout);
                 TwitterProfileTask task = new TwitterProfileTask(nameTextView, descriptionTextView, profileImageTask);
                 task.execute(editText.getText().toString());
+            }
+        });
+
+        syncButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
+                DataMap dataMap = dataMapRequest.getDataMap();
+
+                dataMap.putString("name", nameTextView.getText().toString());
+                dataMap.putString("description", descriptionTextView.getText().toString());
+
+                PutDataRequest request = dataMapRequest.asPutDataRequest();
+                PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+                pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        Log.d("TAG", "[info] onResult: " + dataItemResult.getStatus());
+
+                        PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
+                        DataMap dataMap = dataMapRequest.getDataMap();
+
+                        Asset asset = createAssetFromBitmap(bitmap);
+                        dataMap.putAsset("image", asset);
+
+                        PutDataRequest request = dataMapRequest.asPutDataRequest();
+                        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+                        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                            @Override
+                            public void onResult(DataApi.DataItemResult dataItemResult) {
+                                Log.d("TAG", "[image] onResult: " + dataItemResult.getStatus());
+                            }
+                        });
+                    }
+                });
             }
         });
     }
@@ -216,46 +252,6 @@ public class ProfileActivity extends Activity
                 layout.addView(imageView);
             } else {
                 imageView.setImageBitmap(bitmap);
-            }
-
-            if (syncButton == null) {
-                syncButton = new Button(context);
-                syncButton.setText("sync wearable");
-                syncButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
-                        DataMap dataMap = dataMapRequest.getDataMap();
-
-                        dataMap.putString("name", nameTextView.getText().toString());
-                        dataMap.putString("description", descriptionTextView.getText().toString());
-
-                        PutDataRequest request = dataMapRequest.asPutDataRequest();
-                        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-                        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                            @Override
-                            public void onResult(DataApi.DataItemResult dataItemResult) {
-                                Log.d("TAG", "[info] onResult: " + dataItemResult.getStatus());
-
-                                PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
-                                DataMap dataMap = dataMapRequest.getDataMap();
-
-                                Asset asset = createAssetFromBitmap(bitmap);
-                                dataMap.putAsset("image", asset);
-
-                                PutDataRequest request = dataMapRequest.asPutDataRequest();
-                                PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-                                pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                                    @Override
-                                    public void onResult(DataApi.DataItemResult dataItemResult) {
-                                        Log.d("TAG", "[image] onResult: " + dataItemResult.getStatus());
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-                layout.addView(syncButton);
             }
         }
     }
