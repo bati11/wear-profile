@@ -1,6 +1,7 @@
 package info.bati11.wearprofile;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import info.bati11.wearprofile.fragments.TwitterDialogFragment;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -41,13 +43,16 @@ import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
 
-public class ProfileActivity extends Activity
-        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class ProfileActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        TwitterDialogFragment.PositiveButtonListener {
 
     private GoogleApiClient mGoogleApiClient;
 
+    private LinearLayout layout;
     private EditText editText;
-    private Button button;
+    private Button twitterButton;
     private TextView nameTextView;
     private TextView descriptionTextView;
 
@@ -68,20 +73,19 @@ public class ProfileActivity extends Activity
                 .addApi(Wearable.API)
                 .build();
 
-        final LinearLayout layout = (LinearLayout)findViewById(R.id.layout);
+        layout = (LinearLayout)findViewById(R.id.layout);
         editText = (EditText)findViewById(R.id.name_edit_text);
-        button = (Button)findViewById(R.id.load_button);
+        twitterButton = (Button)findViewById(R.id.load_button);
         nameTextView = (TextView)findViewById(R.id.nameTextView);
         descriptionTextView = (TextView)findViewById(R.id.descriptionTextView);
         syncButton = (Button)findViewById(R.id.sync_button);
 
         final Context context = this;
-        button.setOnClickListener(new View.OnClickListener() {
+        twitterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ProfileImageTask profileImageTask = new ProfileImageTask(context, layout);
-                TwitterProfileTask task = new TwitterProfileTask(nameTextView, descriptionTextView, profileImageTask);
-                task.execute(editText.getText().toString());
+                DialogFragment dialogFragment = new TwitterDialogFragment();
+                dialogFragment.show(getFragmentManager(), "twtterButton");
             }
         });
 
@@ -99,7 +103,6 @@ public class ProfileActivity extends Activity
                 pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                     @Override
                     public void onResult(DataApi.DataItemResult dataItemResult) {
-                        Log.d("TAG", "[info] onResult: " + dataItemResult.getStatus());
 
                         PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
                         DataMap dataMap = dataMapRequest.getDataMap();
@@ -112,7 +115,6 @@ public class ProfileActivity extends Activity
                         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                             @Override
                             public void onResult(DataApi.DataItemResult dataItemResult) {
-                                Log.d("TAG", "[image] onResult: " + dataItemResult.getStatus());
                             }
                         });
                     }
@@ -130,9 +132,6 @@ public class ProfileActivity extends Activity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -169,6 +168,13 @@ public class ProfileActivity extends Activity
         Log.e("TAG", "onConnectionFailed: " + connectionResult);
     }
 
+    @Override
+    public void exec(String name) {
+         ProfileImageTask profileImageTask = new ProfileImageTask(this, layout);
+         TwitterProfileTask task = new TwitterProfileTask(nameTextView, descriptionTextView, profileImageTask);
+         task.execute(name);
+    }
+
     private class TwitterProfileTask extends AsyncTask<String, Integer, User> {
 
         private TextView nameTextView;
@@ -185,16 +191,15 @@ public class ProfileActivity extends Activity
         protected User doInBackground(String... userNames) {
             ConfigurationBuilder cb = new ConfigurationBuilder();
             cb.setDebugEnabled(true)
-                    .setOAuthConsumerKey("1mPQ0eYZVu5tcd67jcUUp9qaw")
-                    .setOAuthConsumerSecret("0E13NTbG2RpzgzcB86ThMmwhu0THTDoAphANd4jSWpKk5tXdeM")
-                    .setOAuthAccessToken("258617593-dHbPMIL28SH2nl6OgVykRFCdvpQ53et47HDcu36g")
-                    .setOAuthAccessTokenSecret("sQZCf5lhTsmBpkib0wLWk2L0EOKiaCjmPtPnqzTv8zNzt");
+                    .setOAuthConsumerKey("")
+                    .setOAuthConsumerSecret("")
+                    .setOAuthAccessToken("")
+                    .setOAuthAccessTokenSecret("");
             TwitterFactory tf = new TwitterFactory(cb.build());
             Twitter twitter = tf.getInstance();
             User result = null;
             try {
                 result = twitter.showUser(userNames[0]);
-                Log.d("TAG", result.getDescription());
             } catch (TwitterException e) {
                 e.printStackTrace();
             }
@@ -205,7 +210,6 @@ public class ProfileActivity extends Activity
         protected void onPostExecute(User user) {
             nameTextView.setText("@" + user.getScreenName());
             descriptionTextView.setText(user.getDescription());
-            Log.d("TAG", user.getProfileImageURL());
 
             profileImageTask.execute(user.getProfileImageURL());
         }
