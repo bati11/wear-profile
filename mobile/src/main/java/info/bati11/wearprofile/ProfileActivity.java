@@ -53,7 +53,6 @@ public class ProfileActivity extends Activity implements
     private LinearLayout layout;
     private EditText editText;
     private Button twitterButton;
-    private TextView nameTextView;
     private TextView descriptionTextView;
 
     private ImageView imageView;
@@ -76,11 +75,9 @@ public class ProfileActivity extends Activity implements
         layout = (LinearLayout)findViewById(R.id.layout);
         editText = (EditText)findViewById(R.id.name_edit_text);
         twitterButton = (Button)findViewById(R.id.load_button);
-        nameTextView = (TextView)findViewById(R.id.nameTextView);
-        descriptionTextView = (TextView)findViewById(R.id.descriptionTextView);
+        descriptionTextView = (TextView)findViewById(R.id.description_edit_text);
         syncButton = (Button)findViewById(R.id.sync_button);
 
-        final Context context = this;
         twitterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -95,7 +92,7 @@ public class ProfileActivity extends Activity implements
                 PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
                 DataMap dataMap = dataMapRequest.getDataMap();
 
-                dataMap.putString("name", nameTextView.getText().toString());
+                dataMap.putString("name", editText.getText().toString());
                 dataMap.putString("description", descriptionTextView.getText().toString());
 
                 PutDataRequest request = dataMapRequest.asPutDataRequest();
@@ -171,7 +168,7 @@ public class ProfileActivity extends Activity implements
     @Override
     public void exec(String name) {
          ProfileImageTask profileImageTask = new ProfileImageTask(this, layout);
-         TwitterProfileTask task = new TwitterProfileTask(nameTextView, descriptionTextView, profileImageTask);
+         TwitterProfileTask task = new TwitterProfileTask(editText, descriptionTextView, profileImageTask);
          task.execute(name);
     }
 

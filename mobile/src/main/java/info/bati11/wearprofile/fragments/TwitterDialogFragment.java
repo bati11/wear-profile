@@ -36,18 +36,17 @@ public class TwitterDialogFragment extends DialogFragment {
         View view = inflater.inflate(R.layout.fragment_twitter_dialog, null);
         nameEditText = (EditText)view.findViewById(R.id.twitter_name);
         builder.setView(view);
-        builder.setMessage("message")
-                .setPositiveButton("load", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        listener.exec(nameEditText.getText().toString());
-                    }
-                })
-                .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                    }
-                });
+        builder.setPositiveButton("load", new DialogInterface.OnClickListener() {
+                   @Override
+                   public void onClick(DialogInterface dialogInterface, int i) {
+                       listener.exec(nameEditText.getText().toString());
+                   }
+               })
+               .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                   @Override
+                   public void onClick(DialogInterface dialogInterface, int i) {
+                   }
+               });
         return builder.create();
     }
 

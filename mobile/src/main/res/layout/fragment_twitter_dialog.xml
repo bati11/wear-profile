@@ -7,6 +7,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="twitter name"
         android:id="@+id/twitter_name" />
 
 </FrameLayout>
