@@ -9,14 +9,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.android.gms.wearable.Asset;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -33,7 +31,6 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
     private SyncButtonListener syncButtonListener;
 
-    private ViewGroup layout;
     private EditText twitterNameEditText;
     private Button twitterLoadButton;
     private EditText twitterDescriptionTextView;
@@ -56,20 +53,27 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_load_twitter, container, false);
-        layout = (ViewGroup)view.findViewById(R.id.twitter_load_layout);
+        final View view = inflater.inflate(R.layout.fragment_load_twitter, container, false);
         twitterNameEditText = (EditText)view.findViewById(R.id.twitter_name_edit_text);
         twitterLoadButton = (Button)view.findViewById(R.id.twitter_load_button);
         twitterDescriptionTextView = (EditText)view.findViewById(R.id.twitter_description_edit_text);
+        imageView = (ImageView)view.findViewById(R.id.twitter_profile_image);
         syncButton = (Button)view.findViewById(R.id.twitter_sync_button);
 
         final Context context = getActivity();
         twitterLoadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ProfileImageTask profileImageTask = new ProfileImageTask(context, layout);
-                TwitterProfileTask task = new TwitterProfileTask(twitterNameEditText, twitterDescriptionTextView, profileImageTask);
-                task.execute(twitterNameEditText.getText().toString());
+                InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                final String name;
+                if (twitterNameEditText.getText().toString().startsWith("@")) {
+                    name = twitterNameEditText.getText().toString().substring(1);
+                } else {
+                    name = twitterNameEditText.getText().toString();
+                }
+                TwitterProfileTask task = new TwitterProfileTask(context, new ProfileImageTask());
+                task.execute(name);
             }
         });
         syncButton.setOnClickListener(new View.OnClickListener() {
@@ -96,13 +100,11 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
     private class TwitterProfileTask extends AsyncTask<String, Integer, User> {
 
-        private TextView nameTextView;
-        private TextView descriptionTextView;
+        private Context context;
         private ProfileImageTask profileImageTask;
 
-        public TwitterProfileTask(TextView nameTextView, TextView descriptionTextView, ProfileImageTask profileImageTask1) {
-            this.nameTextView = nameTextView;
-            this.descriptionTextView = descriptionTextView;
+        public TwitterProfileTask(Context context, ProfileImageTask profileImageTask1) {
+            this.context = context;
             this.profileImageTask = profileImageTask1;
         }
 
@@ -127,22 +129,17 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
         @Override
         protected void onPostExecute(User user) {
-            nameTextView.setText("@" + user.getScreenName());
-            descriptionTextView.setText(user.getDescription());
-
-            profileImageTask.execute(user.getProfileImageURL());
+            if (user == null) {
+                Toast.makeText(context, "error", Toast.LENGTH_LONG).show();
+            } else {
+                twitterNameEditText.setText("@" + user.getScreenName());
+                twitterDescriptionTextView.setText(user.getDescription());
+                profileImageTask.execute(user.getBiggerProfileImageURL());
+            }
         }
     }
 
     private class ProfileImageTask extends AsyncTask<String, Integer, Bitmap> {
-
-        private Context context;
-        private ViewGroup layout;
-
-        public ProfileImageTask(Context context, ViewGroup layout) {
-            this.context = context;
-            this.layout = layout;
-        }
 
         @Override
         protected Bitmap doInBackground(String... strings) {
@@ -168,14 +165,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         @Override
         protected void onPostExecute(final Bitmap bm) {
             bitmap = bm;
-
-            if (imageView == null) {
-                imageView = new ImageView(context);
-                imageView.setImageBitmap(bitmap);
-                layout.addView(imageView);
-            } else {
-                imageView.setImageBitmap(bitmap);
-            }
+            imageView.setImageBitmap(bitmap);
         }
     }
 }

@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
-        android:hint="description"
+        android:hint="self-introduction"
         android:id="@+id/description_edit_text" />
 
     <Button

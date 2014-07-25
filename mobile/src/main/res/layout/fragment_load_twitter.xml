@@ -11,14 +11,16 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="name"
+            android:layout_weight="8"
+            android:hint="\@username"
             android:id="@+id/twitter_name_edit_text" />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:layout_gravity="right"
             android:text="load"
             android:id="@+id/twitter_load_button"
@@ -29,9 +31,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
-        android:hint="description"
+        android:hint="self-introduction"
         android:id="@+id/twitter_description_edit_text" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:id="@+id/twitter_profile_image" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -33,7 +33,7 @@ public class ProfilePagerAdapter extends FragmentPagerAdapter {
     public CharSequence getPageTitle(int position) {
         CharSequence title;
         if (position == 0) title = "input";
-        else              title = "load twitter";
+        else              title = "twitter";
         return title;
     }
 }
