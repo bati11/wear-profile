@@ -24,5 +24,4 @@ dependencies {
     wearApp project(':wear')
     compile 'com.google.android.gms:play-services-wearable:+'
     compile 'com.android.support:support-v4:20.0.+'
-    compile 'org.twitter4j:twitter4j-core:4.0.2'
 }

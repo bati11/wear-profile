@@ -16,17 +16,22 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import info.bati11.wearprofile.R;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.User;
-import twitter4j.conf.ConfigurationBuilder;
 
 public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
@@ -114,7 +119,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         profileFragmentListener = null;
     }
 
-    private class TwitterProfileTask extends AsyncTask<String, Integer, User> {
+    private class TwitterProfileTask extends AsyncTask<String, Integer, Map<String, String>> {
 
         private Context context;
         private ProfileImageTask profileImageTask;
@@ -125,32 +130,36 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         }
 
         @Override
-        protected User doInBackground(String... userNames) {
-            ConfigurationBuilder cb = new ConfigurationBuilder();
-            cb.setDebugEnabled(true)
-                    .setOAuthConsumerKey("")
-                    .setOAuthConsumerSecret("")
-                    .setOAuthAccessToken("")
-                    .setOAuthAccessTokenSecret("");
-            TwitterFactory tf = new TwitterFactory(cb.build());
-            Twitter twitter = tf.getInstance();
-            User result = null;
+        protected Map<String, String> doInBackground(String... userNames) {
+            HttpGet httpGet = new HttpGet("http://bati11-twitter-api.herokuapp.com/wearprofile/users/" + userNames[0]);
+            DefaultHttpClient client = new DefaultHttpClient();
+            Map<String, String> result = null;
             try {
-                result = twitter.showUser(userNames[0]);
-            } catch (TwitterException e) {
+                HttpResponse response = client.execute(httpGet);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    String res = EntityUtils.toString(response.getEntity());
+                    JSONObject jsonObject = new JSONObject(res);
+                    result = new HashMap<String, String>();
+                    result.put("screenName", jsonObject.getString("screenName"));
+                    result.put("description", jsonObject.getString("description"));
+                    result.put("biggerProfileImageURL", jsonObject.getString("biggerProfileImageURL"));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
             return result;
         }
 
         @Override
-        protected void onPostExecute(User user) {
-            if (user == null) {
+        protected void onPostExecute(Map<String, String> map) {
+            if (map == null) {
                 Toast.makeText(context, "error", Toast.LENGTH_LONG).show();
             } else {
-                twitterNameEditText.setText("@" + user.getScreenName());
-                twitterDescriptionTextView.setText(user.getDescription());
-                profileImageTask.execute(user.getBiggerProfileImageURL());
+                twitterNameEditText.setText("@" + map.get("screenName"));
+                twitterDescriptionTextView.setText(map.get("description"));
+                profileImageTask.execute(map.get("biggerProfileImageURL"));
             }
         }
     }
