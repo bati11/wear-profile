@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -29,12 +30,13 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
-    private SyncButtonListener syncButtonListener;
+    private ProfileFragmentListener profileFragmentListener;
 
     private EditText twitterNameEditText;
     private Button twitterLoadButton;
     private EditText twitterDescriptionTextView;
 
+    private ImageButton imageButton;
     private ImageView imageView;
     private Bitmap bitmap;
 
@@ -43,6 +45,12 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
     public static LoadTwitterFragment newInstance() {
         LoadTwitterFragment fragment = new LoadTwitterFragment();
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.profileFragmentListener = (ProfileFragmentListener)activity;
     }
 
     @Override
@@ -57,6 +65,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         twitterNameEditText = (EditText)view.findViewById(R.id.twitter_name_edit_text);
         twitterLoadButton = (Button)view.findViewById(R.id.twitter_load_button);
         twitterDescriptionTextView = (EditText)view.findViewById(R.id.twitter_description_edit_text);
+        imageButton = (ImageButton)view.findViewById(R.id.twitter_image_button);
         imageView = (ImageView)view.findViewById(R.id.twitter_profile_image);
         syncButton = (Button)view.findViewById(R.id.twitter_sync_button);
 
@@ -76,10 +85,16 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
                 task.execute(name);
             }
         });
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                profileFragmentListener.onClickImage();
+            }
+        });
         syncButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                syncButtonListener.exec(twitterNameEditText.getText().toString(),
+                profileFragmentListener.onClickSync(twitterNameEditText.getText().toString(),
                         twitterDescriptionTextView.getText().toString(), bitmap);
             }
         });
@@ -87,15 +102,16 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        this.syncButtonListener = (SyncButtonListener)activity;
+    public void onStart() {
+        super.onStart();
+        Bitmap bitmap = profileFragmentListener.getProfileImage();
+        if (bitmap != null) imageView.setImageBitmap(bitmap);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        syncButtonListener = null;
+        profileFragmentListener = null;
     }
 
     private class TwitterProfileTask extends AsyncTask<String, Integer, User> {

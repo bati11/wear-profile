@@ -2,7 +2,11 @@ package info.bati11.wearprofile;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.content.ContentResolver;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -20,20 +24,26 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import info.bati11.wearprofile.adapters.ProfilePagerAdapter;
-import info.bati11.wearprofile.fragments.SyncButtonListener;
+import info.bati11.wearprofile.fragments.ProfileFragmentListener;
 
 
 public class ProfileActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        SyncButtonListener,
+        ProfileFragmentListener,
         ActionBar.TabListener {
 
     private GoogleApiClient mGoogleApiClient;
 
+    private ActionBar actionBar;
     private ViewPager viewPager;
+
+    private Uri profileImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +59,7 @@ public class ProfileActivity extends FragmentActivity implements
         ProfilePagerAdapter pagerAdapter = new ProfilePagerAdapter(getSupportFragmentManager());
         viewPager = (ViewPager)findViewById(R.id.pager);
         viewPager.setAdapter(pagerAdapter);
-        final ActionBar actionBar = getActionBar();
+        actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         for (int i = 0; i < pagerAdapter.getCount(); i++) {
             ActionBar.Tab tab = actionBar.newTab()
@@ -109,7 +119,24 @@ public class ProfileActivity extends FragmentActivity implements
     }
 
     @Override
-    public void exec(String name, String description, final Bitmap bitmap) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 100) {
+            if (resultCode == RESULT_OK) {
+                Log.d("TAG", "result_ok: " + data.getData());
+                profileImageUri = data.getData();
+            }
+        }
+    }
+
+    @Override
+    public void onClickImage() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select image"), 100);
+    }
+
+    @Override
+    public void onClickSync(String name, String description, final Bitmap bitmap) {
         PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
         DataMap dataMap = dataMapRequest.getDataMap();
 
@@ -137,6 +164,36 @@ public class ProfileActivity extends FragmentActivity implements
                 });
             }
         });
+    }
+
+    @Override
+    public Bitmap getProfileImage() {
+        if (profileImageUri == null) return null;
+
+        ContentResolver cr = getContentResolver();
+        InputStream in = null;
+        Bitmap result = null;
+        try {
+            in = cr.openInputStream(profileImageUri);
+            Bitmap bitmap = BitmapFactory.decodeStream(in);
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            if (width > 200) {
+                double resizedHeight = 200 * ((double)height / width);
+                result = Bitmap.createScaledBitmap(bitmap, 200, (int)resizedHeight, false);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
     }
 
     @Override
