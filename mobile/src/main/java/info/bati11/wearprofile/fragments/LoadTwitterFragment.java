@@ -47,6 +47,8 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
     private Button syncButton;
 
+    private LoadDialogFragment loadDialogFragment;
+
     public static LoadTwitterFragment newInstance() {
         LoadTwitterFragment fragment = new LoadTwitterFragment();
         return fragment;
@@ -78,6 +80,8 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         twitterLoadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                loadDialogFragment = LoadDialogFragment.newInstance();
+                loadDialogFragment.show(getActivity().getFragmentManager(), "loadDialog");
                 InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 final String name;
@@ -154,6 +158,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
         @Override
         protected void onPostExecute(Map<String, String> map) {
+            loadDialogFragment.getDialog().dismiss();
             if (map == null) {
                 Toast.makeText(context, "error", Toast.LENGTH_LONG).show();
             } else {
