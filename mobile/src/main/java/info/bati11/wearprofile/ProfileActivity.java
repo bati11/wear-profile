@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -99,17 +98,14 @@ public class ProfileActivity extends FragmentActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("TAG", "onConnected");
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d("TAG", "onConnectionSuspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("TAG", "onConnectionFailed: " + connectionResult);
     }
 
     private static Asset createAssetFromBitmap(Bitmap bitmap) {
@@ -122,7 +118,6 @@ public class ProfileActivity extends FragmentActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 100) {
             if (resultCode == RESULT_OK) {
-                Log.d("TAG", "result_ok: " + data.getData());
                 profileImageUri = data.getData();
             }
         }

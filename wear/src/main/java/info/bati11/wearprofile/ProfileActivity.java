@@ -6,11 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -27,7 +25,6 @@ import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 import info.bati11.wearprofile.fragments.ProfileFragment;
 
@@ -123,24 +120,17 @@ public class ProfileActivity extends Activity
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d("TAG", "onConnectionSuspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("TAG", "onConnectionFailed: " + connectionResult);
     }
 
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.d("TAG", "onDataChanged: " + dataEvents.getCount());
         for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d("TAG", "DataItem deleted: " + event.getDataItem().getUri());
-
-            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
-                Log.d("TAG", "DataItem changed: " + event.getDataItem().getUri());
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
 
                 if (event.getDataItem().getUri().getPath().equals("/profile/info")) {
                     DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
@@ -182,10 +172,7 @@ public class ProfileActivity extends Activity
         InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
                 mGoogleApiClient, asset).await().getInputStream();
 
-        if (assetInputStream == null) {
-            Log.w("TAG", "Requested an unknown Asset.");
-            return null;
-        }
-        return BitmapFactory.decodeStream(assetInputStream);
+        if (assetInputStream == null) return null;
+        else                          return BitmapFactory.decodeStream(assetInputStream);
     }
 }
