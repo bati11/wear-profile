@@ -19,6 +19,7 @@ public class LoadDialogFragment extends DialogFragment {
             progressDialog.setMessage("Loading...");
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         }
+        setCancelable(false);
         return progressDialog;
     }
 
