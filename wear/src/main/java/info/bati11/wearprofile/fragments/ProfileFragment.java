@@ -29,9 +29,9 @@ public class ProfileFragment extends CardFragment {
         return rootView;
     }
 
-    public void changeProfileName(String profileName) {
+    public void changeContent(String content) {
         if (profileNameTextView != null) {
-            profileNameTextView.setText(profileName);
+            profileNameTextView.setText(content);
         }
     }
 }

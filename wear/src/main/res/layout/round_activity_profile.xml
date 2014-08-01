@@ -6,4 +6,10 @@
     tools:context=".ProfileActivity"
     android:id="@+id/layout"
     tools:deviceIds="wear_round">
+    <info.bati11.wearprofile.views.CardGridViewPager
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true" />
 </RelativeLayout>

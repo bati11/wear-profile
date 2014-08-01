@@ -1,13 +1,14 @@
 package info.bati11.wearprofile;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
-import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,7 +27,9 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.io.InputStream;
 
+import info.bati11.wearprofile.adapters.CardFragmentGridPagerAdapter;
 import info.bati11.wearprofile.fragments.ProfileFragment;
+import info.bati11.wearprofile.views.CardGridViewPager;
 
 public class ProfileActivity extends Activity
         implements GoogleApiClient.ConnectionCallbacks,
@@ -35,11 +38,15 @@ public class ProfileActivity extends Activity
 
     private GoogleApiClient mGoogleApiClient;
 
+    private Context context;
+
     private ViewGroup layout;
+    private CardGridViewPager gridViewPager;
+
     private ProfileFragment fragment;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
@@ -50,11 +57,16 @@ public class ProfileActivity extends Activity
                 .addApi(Wearable.API)
                 .build();
 
+        context = this;
+
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 layout = (ViewGroup) stub.findViewById(R.id.layout);
+                gridViewPager = (CardGridViewPager)layout.findViewById(R.id.pager);
+                gridViewPager.setVisibility(View.INVISIBLE);
+                gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), "", ""));
             }
         });
     }
@@ -76,7 +88,6 @@ public class ProfileActivity extends Activity
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("TAG", "onConnected");
         Wearable.DataApi.addListener(mGoogleApiClient, this);
 
         PendingResult<DataItemBuffer> dataItems = Wearable.DataApi.getDataItems(mGoogleApiClient);
@@ -88,13 +99,14 @@ public class ProfileActivity extends Activity
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
                         DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
                         String name = dataMap.getString("name", "no name");
-                        if (fragment == null) {
-                            fragment = ProfileFragment.newInstance(name);
-                            getFragmentManager().beginTransaction()
-                                    .add(R.id.layout, fragment).commit();
-                        } else {
-                            fragment.changeProfileName(name);
-                        }
+                        String description = dataMap.getString("description", "");
+
+                        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
+                        adapter.changeProfile(name, description);
+                        if (adapter.getEnableCardCount() > 1) gridViewPager.setSwipable(true);
+                        else                                  gridViewPager.setSwipable(false);
+                        gridViewPager.setVisibility(View.VISIBLE);
+
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                         final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
@@ -143,7 +155,7 @@ public class ProfileActivity extends Activity
                                 getFragmentManager().beginTransaction()
                                         .add(R.id.layout, fragment).commit();
                             } else {
-                                fragment.changeProfileName(name);
+                                fragment.changeContent(name);
                             }
                         }
                     });
