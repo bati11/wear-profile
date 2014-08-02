@@ -5,6 +5,8 @@ import android.support.wearable.view.GridViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+import info.bati11.wearprofile.adapters.CardFragmentGridPagerAdapter;
+
 public class CardGridViewPager extends GridViewPager {
     private boolean isSwipable = false;
     public CardGridViewPager(Context context) {
@@ -31,5 +33,16 @@ public class CardGridViewPager extends GridViewPager {
     public boolean onInterceptTouchEvent(MotionEvent event)  {
         if (isSwipable) return super.onInterceptTouchEvent(event);
         else            return false;
+    }
+
+    public void changePagerSwipable() {
+        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter)getAdapter();
+        if (adapter.getEnableCardCount() >= 2) isSwipable = true;
+        else isSwipable = false;
+    }
+
+    public int getEnableCardCount() {
+        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter)getAdapter();
+        return adapter.getEnableCardCount();
     }
 }

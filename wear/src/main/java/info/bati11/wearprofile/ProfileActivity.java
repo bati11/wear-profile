@@ -123,8 +123,6 @@ public class ProfileActivity extends Activity
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
                         Pair<String, String> pair = getNameDescriptionPair(dataItem);
                         changeProfile(pair._1, pair._2);
-                        changePagerSwipable();
-                        changeDotLayout();
                         gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
@@ -171,8 +169,6 @@ public class ProfileActivity extends Activity
                         @Override
                         public void run() {
                             changeProfile(pair._1, pair._2);
-                            changePagerSwipable();
-                            changeDotLayout();
                         }
                     });
 
@@ -235,19 +231,14 @@ public class ProfileActivity extends Activity
 
     public void changeProfile(String name, String description) {
         gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), name, description));
-    }
-
-    private void changePagerSwipable() {
-        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
-        if (adapter.getEnableCardCount() >= 2) gridViewPager.setSwipable(true);
-        else gridViewPager.setSwipable(false);
+        gridViewPager.changePagerSwipable();
+        changeDotLayout();
     }
 
     private void changeDotLayout() {
-        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
         dotLayout.removeAllViews();
-        if (adapter.getEnableCardCount() >= 2) {
-            for (int j = 0; j < adapter.getEnableCardCount(); j++) {
+        if (gridViewPager.getEnableCardCount() >= 2) {
+            for (int j = 0; j < gridViewPager.getEnableCardCount(); j++) {
                 Button button = new Button(context);
                 configDot(button, 4, 4);
                 dotLayout.addView(button);
