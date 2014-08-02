@@ -54,13 +54,14 @@ public class InputFragment extends android.support.v4.app.Fragment {
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                profileFragmentListener.onClickImage();
+                profileFragmentListener.onClickImage(view);
             }
         });
         syncButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 profileFragmentListener.onClickSync(
+                        view,
                         nameEditTextView.getText().toString(),
                         descriptionEditTextView.getText().toString(),
                         ((BitmapDrawable)imageView.getDrawable()).getBitmap());

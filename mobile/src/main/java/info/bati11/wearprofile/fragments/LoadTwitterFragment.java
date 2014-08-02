@@ -101,14 +101,17 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                profileFragmentListener.onClickImage();
+                profileFragmentListener.onClickImage(view);
             }
         });
         syncButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                profileFragmentListener.onClickSync(twitterNameEditText.getText().toString(),
-                        twitterDescriptionTextView.getText().toString(), bitmap);
+                profileFragmentListener.onClickSync(
+                        view,
+                        twitterNameEditText.getText().toString(),
+                        twitterDescriptionTextView.getText().toString(),
+                        bitmap);
             }
         });
         return view;

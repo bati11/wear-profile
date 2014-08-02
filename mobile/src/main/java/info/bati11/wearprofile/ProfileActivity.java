@@ -3,6 +3,7 @@ package info.bati11.wearprofile;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +12,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -164,14 +167,16 @@ public class ProfileActivity extends FragmentActivity implements
     }
 
     @Override
-    public void onClickImage() {
+    public void onClickImage(View view) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Select image"), 100);
     }
 
     @Override
-    public void onClickSync(String name, String description, final Bitmap bitmap) {
+    public void onClickSync(View view, String name, String description, final Bitmap bitmap) {
+        InputMethodManager imm = (InputMethodManager)this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
         DataMap dataMap = dataMapRequest.getDataMap();
 
@@ -181,8 +186,8 @@ public class ProfileActivity extends FragmentActivity implements
         PutDataRequest request = dataMapRequest.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-            @Override
-            public void onResult(DataApi.DataItemResult dataItemResult) {
+                                    @Override
+                                    public void onResult(DataApi.DataItemResult dataItemResult) {
 
                 PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
                 DataMap dataMap = dataMapRequest.getDataMap();
