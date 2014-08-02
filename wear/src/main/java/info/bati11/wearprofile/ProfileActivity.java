@@ -144,19 +144,21 @@ public class ProfileActivity extends Activity
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                         final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
-                        new AsyncTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                final Bitmap bitmap = loadBitmapFromAsset(profileImage);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        layout.setBackground(new BitmapDrawable(bitmap));
-                                    }
-                                });
-                                return null;
-                            }
-                        }.execute();
+                        if (profileImage != null) {
+                            new AsyncTask<Void, Void, Void>() {
+                                @Override
+                                protected Void doInBackground(Void... voids) {
+                                    final Bitmap bitmap = loadBitmapFromAsset(profileImage);
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            layout.setBackground(new BitmapDrawable(bitmap));
+                                        }
+                                    });
+                                    return null;
+                                }
+                            }.execute();
+                        }
                     }
                 }
                 dataItems.close();
@@ -196,13 +198,22 @@ public class ProfileActivity extends Activity
                 } else if (event.getDataItem().getUri().getPath().equals("/profile/image")) {
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                     Asset profileImage = dataMapItem.getDataMap().getAsset("image");
-                    final Bitmap bitmap = loadBitmapFromAsset(profileImage);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            layout.setBackground(new BitmapDrawable(bitmap));
-                        }
-                    });
+                    if (profileImage == null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                layout.setBackground(null);
+                            }
+                        });
+                    } else {
+                        final Bitmap bitmap = loadBitmapFromAsset(profileImage);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                layout.setBackground(new BitmapDrawable(bitmap));
+                            }
+                        });
+                    }
                 }
             }
         }

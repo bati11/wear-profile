@@ -124,22 +124,25 @@ public class ProfileActivity extends FragmentActivity implements
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                         final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
-                        new AsyncTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                final Bitmap bitmapFromAsset = loadBitmapFromAsset(profileImage);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        ProfilePagerAdapter adapter = (ProfilePagerAdapter) viewPager.getAdapter();
-                                        adapter.setProfileImage(bitmapFromAsset);
-                                    }
-                                });
-                                return null;
-                            }
-                        }.execute();
+                        if (profileImage != null) {
+                            new AsyncTask<Void, Void, Void>() {
+                                @Override
+                                protected Void doInBackground(Void... voids) {
+                                    final Bitmap bitmapFromAsset = loadBitmapFromAsset(profileImage);
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ProfilePagerAdapter adapter = (ProfilePagerAdapter) viewPager.getAdapter();
+                                            adapter.setProfileImage(bitmapFromAsset);
+                                        }
+                                    });
+                                    return null;
+                                }
+                            }.execute();
+                        }
                     }
                 }
+                dataItems.close();
             }
         });
     }
@@ -153,9 +156,13 @@ public class ProfileActivity extends FragmentActivity implements
     }
 
     private static Asset createAssetFromBitmap(Bitmap bitmap) {
-        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
-        return Asset.createFromBytes(byteStream.toByteArray());
+        if (bitmap == null) {
+            return null;
+        } else {
+            final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
+            return Asset.createFromBytes(byteStream.toByteArray());
+        }
     }
 
     @Override
