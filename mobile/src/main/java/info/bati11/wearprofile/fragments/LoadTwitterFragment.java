@@ -76,6 +76,8 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         imageView = (ImageView)view.findViewById(R.id.twitter_profile_image);
         syncButton = (Button)view.findViewById(R.id.twitter_sync_button);
 
+        syncButton.setVisibility(View.INVISIBLE);
+
         final Context context = getActivity();
         twitterLoadButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,6 +174,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
                 twitterNameEditText.setText("@" + map.get("screenName"));
                 twitterDescriptionTextView.setText(map.get("description"));
                 profileImageTask.execute(map.get("biggerProfileImageURL"));
+                syncButton.setVisibility(View.VISIBLE);
             }
         }
     }
