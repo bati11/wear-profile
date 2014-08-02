@@ -34,6 +34,7 @@ import java.io.InputStream;
 
 import info.bati11.wearprofile.adapters.CardFragmentGridPagerAdapter;
 import info.bati11.wearprofile.fragments.ProfileFragment;
+import info.bati11.wearprofile.utils.Pair;
 import info.bati11.wearprofile.views.CardGridViewPager;
 
 public class ProfileActivity extends Activity
@@ -70,7 +71,7 @@ public class ProfileActivity extends Activity
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 layout = (ViewGroup) stub.findViewById(R.id.layout);
-                gridViewPager = (CardGridViewPager)layout.findViewById(R.id.pager);
+                gridViewPager = (CardGridViewPager) layout.findViewById(R.id.pager);
                 gridViewPager.setVisibility(View.INVISIBLE);
                 gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), "", ""));
                 gridViewPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
@@ -80,10 +81,10 @@ public class ProfileActivity extends Activity
 
                     @Override
                     public void onPageSelected(int i, int i2) {
-                        for(int j = 0; j < dotLayout.getChildCount(); j++){
+                        for (int j = 0; j < dotLayout.getChildCount(); j++) {
                             configDot((Button) dotLayout.getChildAt(j), 4, 4);
                         }
-                        if(dotLayout.getChildCount() > i) {
+                        if (dotLayout.getChildCount() > i) {
                             configDot((Button) dotLayout.getChildAt(i2), 6, 2);
                         }
                     }
@@ -92,7 +93,7 @@ public class ProfileActivity extends Activity
                     public void onPageScrollStateChanged(int i) {
                     }
                 });
-                dotLayout = (ViewGroup)stub.findViewById(R.id.dotLayout);
+                dotLayout = (ViewGroup) stub.findViewById(R.id.dotLayout);
             }
         });
     }
@@ -123,24 +124,10 @@ public class ProfileActivity extends Activity
                 for (int i = 0; i < dataItems.getCount(); i++) {
                     DataItem dataItem = dataItems.get(i);
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
-                        DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
-                        String name = dataMap.getString("name", "no name");
-                        String description = dataMap.getString("description", "");
-
-                        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
-                        adapter.changeProfile(name, description);
-                        if (adapter.getEnableCardCount() >= 2) gridViewPager.setSwipable(true);
-                        else                                   gridViewPager.setSwipable(false);
-
-                        dotLayout.removeAllViews();
-                        if (adapter.getEnableCardCount() >= 2) {
-                            for (int j = 0; j < adapter.getEnableCardCount(); j++) {
-                                Button button = new Button(context);
-                                configDot(button, 4, 4);
-                                dotLayout.addView(button);
-                            }
-                            configDot((Button) dotLayout.getChildAt(0), 6, 2);
-                        }
+                        Pair<String, String> pair = getNameDescriptionPair(dataItem);
+                        changeProfile(pair._1, pair._2);
+                        changePagerSwipable();
+                        changeDotLayout();
                         gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
@@ -183,20 +170,17 @@ public class ProfileActivity extends Activity
             if (event.getType() == DataEvent.TYPE_CHANGED) {
 
                 if (event.getDataItem().getUri().getPath().equals("/profile/info")) {
-                    DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
-                    final String name = dataMap.getString("name");
+                    final Pair<String, String> pair = getNameDescriptionPair(event.getDataItem());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (fragment == null) {
-                                fragment = ProfileFragment.newInstance(name);
-                                getFragmentManager().beginTransaction()
-                                        .add(R.id.layout, fragment).commit();
-                            } else {
-                                fragment.changeContent(name);
-                            }
+                            changeProfile(pair._1, pair._2);
+                            gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), pair._1, pair._2));
+                            changePagerSwipable();
+                            changeDotLayout();
                         }
                     });
+
                 } else if (event.getDataItem().getUri().getPath().equals("/profile/image")) {
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                     Asset profileImage = dataMapItem.getDataMap().getAsset("image");
@@ -246,4 +230,36 @@ public class ProfileActivity extends Activity
     private int getPxFromDp(int dp){
         return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
+
+    private Pair<String, String> getNameDescriptionPair(DataItem dataItem) {
+        DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
+        String name = dataMap.getString("name", "no name");
+        String description = dataMap.getString("description", "");
+        return Pair.create(name, description);
+    }
+
+    public void changeProfile(String name, String description) {
+        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
+        adapter.changeProfile(name, description);
+    }
+
+    private void changePagerSwipable() {
+        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
+        if (adapter.getEnableCardCount() >= 2) gridViewPager.setSwipable(true);
+        else gridViewPager.setSwipable(false);
+    }
+
+    private void changeDotLayout() {
+        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
+        dotLayout.removeAllViews();
+        if (adapter.getEnableCardCount() >= 2) {
+            for (int j = 0; j < adapter.getEnableCardCount(); j++) {
+                Button button = new Button(context);
+                configDot(button, 4, 4);
+                dotLayout.addView(button);
+            }
+            configDot((Button) dotLayout.getChildAt(0), 6, 2);
+        }
+    }
+
 }
