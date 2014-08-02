@@ -1,5 +1,6 @@
 package info.bati11.wearprofile.adapters;
 
+import android.graphics.Bitmap;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -9,6 +10,9 @@ import info.bati11.wearprofile.fragments.LoadTwitterFragment;
 
 public class ProfilePagerAdapter extends FragmentPagerAdapter {
 
+    private InputFragment inputFragment;
+    private LoadTwitterFragment loadTwitterFragment;
+
     public ProfilePagerAdapter(FragmentManager fm) {
         super(fm);
     }
@@ -17,9 +21,11 @@ public class ProfilePagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         Fragment result;
         if (position == 0) {
-            result = InputFragment.newInstance();
+            if (inputFragment == null) inputFragment = InputFragment.newInstance();
+            result = inputFragment;
         } else {
-            result = LoadTwitterFragment.newInstance();
+            if (loadTwitterFragment == null) loadTwitterFragment = LoadTwitterFragment.newInstance();
+            result = loadTwitterFragment;
         }
         return result;
     }
@@ -35,5 +41,13 @@ public class ProfilePagerAdapter extends FragmentPagerAdapter {
         if (position == 0) title = "input";
         else              title = "twitter";
         return title;
+    }
+
+    public void setProfile(String name, String description) {
+        inputFragment.setProfile(name, description);
+    }
+
+    public void setProfileImage(Bitmap bitmap) {
+        inputFragment.setProfileImage(bitmap);
     }
 }

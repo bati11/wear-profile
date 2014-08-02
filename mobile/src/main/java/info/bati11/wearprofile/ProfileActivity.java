@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -17,7 +18,10 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -36,6 +40,8 @@ public class ProfileActivity extends FragmentActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         ProfileFragmentListener,
         ActionBar.TabListener {
+
+    private boolean initFlag = false;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -98,6 +104,40 @@ public class ProfileActivity extends FragmentActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
+        if (initFlag) return;
+        initFlag = true;
+        PendingResult<DataItemBuffer> dataItems = Wearable.DataApi.getDataItems(mGoogleApiClient);
+        dataItems.setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(DataItemBuffer dataItems) {
+                for (DataItem dataItem : dataItems) {
+                    if (dataItem.getUri().getPath().equals("/profile/info")) {
+                        DataMap dataMap = DataMap.fromByteArray(dataItem.getData());
+                        String name = dataMap.getString("name", "no name");
+                        String description = dataMap.getString("description", "");
+                        ProfilePagerAdapter adapter = (ProfilePagerAdapter) viewPager.getAdapter();
+                        adapter.setProfile(name, description);
+                    } else if (dataItem.getUri().getPath().equals("/profile/image")) {
+                        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                        final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
+                        new AsyncTask<Void, Void, Void>() {
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                final Bitmap bitmapFromAsset = loadBitmapFromAsset(profileImage);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ProfilePagerAdapter adapter = (ProfilePagerAdapter) viewPager.getAdapter();
+                                        adapter.setProfileImage(bitmapFromAsset);
+                                    }
+                                });
+                                return null;
+                            }
+                        }.execute();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -202,5 +242,19 @@ public class ProfileActivity extends FragmentActivity implements
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    private Bitmap loadBitmapFromAsset(Asset asset) {
+        if (asset == null) {
+            throw new IllegalArgumentException("Asset must be non-null");
+        }
+        if (!mGoogleApiClient.isConnected()) {
+            return null;
+        }
+        InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
+                mGoogleApiClient, asset).await().getInputStream();
+
+        if (assetInputStream == null) return null;
+        else                          return BitmapFactory.decodeStream(assetInputStream);
     }
 }
