@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -177,33 +178,37 @@ public class ProfileActivity extends FragmentActivity implements
     public void onClickSync(View view, String name, String description, final Bitmap bitmap) {
         InputMethodManager imm = (InputMethodManager)this.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
-        DataMap dataMap = dataMapRequest.getDataMap();
+        if (name == null || name.equals("")) {
+            Toast.makeText(this, "Please input name.", Toast.LENGTH_LONG).show();
+        } else {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/info");
+            DataMap dataMap = dataMapRequest.getDataMap();
 
-        dataMap.putString("name", name);
-        dataMap.putString("description", description);
+            dataMap.putString("name", name);
+            dataMap.putString("description", description);
 
-        PutDataRequest request = dataMapRequest.asPutDataRequest();
-        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                                    @Override
-                                    public void onResult(DataApi.DataItemResult dataItemResult) {
+            PutDataRequest request = dataMapRequest.asPutDataRequest();
+            PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(DataApi.DataItemResult dataItemResult) {
 
-                PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
-                DataMap dataMap = dataMapRequest.getDataMap();
+                    PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/profile/image");
+                    DataMap dataMap = dataMapRequest.getDataMap();
 
-                Asset asset = createAssetFromBitmap(bitmap);
-                dataMap.putAsset("image", asset);
+                    Asset asset = createAssetFromBitmap(bitmap);
+                    dataMap.putAsset("image", asset);
 
-                PutDataRequest request = dataMapRequest.asPutDataRequest();
-                PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-                pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                    @Override
-                    public void onResult(DataApi.DataItemResult dataItemResult) {
-                    }
-                });
-            }
-        });
+                    PutDataRequest request = dataMapRequest.asPutDataRequest();
+                    PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+                    pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                        @Override
+                        public void onResult(DataApi.DataItemResult dataItemResult) {
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override
