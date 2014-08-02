@@ -33,7 +33,6 @@ import com.google.android.gms.wearable.Wearable;
 import java.io.InputStream;
 
 import info.bati11.wearprofile.adapters.CardFragmentGridPagerAdapter;
-import info.bati11.wearprofile.fragments.ProfileFragment;
 import info.bati11.wearprofile.utils.Pair;
 import info.bati11.wearprofile.views.CardGridViewPager;
 
@@ -49,8 +48,6 @@ public class ProfileActivity extends Activity
     private ViewGroup layout;
     private CardGridViewPager gridViewPager;
     private ViewGroup dotLayout;
-
-    private ProfileFragment fragment;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -131,8 +128,7 @@ public class ProfileActivity extends Activity
                         gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
-                        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
-                        final Asset profileImage = dataMapItem.getDataMap().getAsset("image");
+                        final Asset profileImage = getProfileImageAsset(dataItem);
                         if (profileImage != null) {
                             new AsyncTask<Void, Void, Void>() {
                                 @Override
@@ -181,27 +177,27 @@ public class ProfileActivity extends Activity
                     });
 
                 } else if (event.getDataItem().getUri().getPath().equals("/profile/image")) {
-                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                    Asset profileImage = dataMapItem.getDataMap().getAsset("image");
-                    if (profileImage == null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                layout.setBackground(null);
-                            }
-                        });
-                    } else {
-                        final Bitmap bitmap = loadBitmapFromAsset(profileImage);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                layout.setBackground(new BitmapDrawable(bitmap));
-                            }
-                        });
-                    }
+                    Asset profileImage = getProfileImageAsset(event.getDataItem());
+
+                    final Bitmap bitmap;
+                    if (profileImage == null) bitmap = null;
+                    else                      bitmap = loadBitmapFromAsset(profileImage);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (bitmap == null) layout.setBackground(null);
+                            else                layout.setBackground(new BitmapDrawable(bitmap));
+                        }
+                    });
                 }
             }
         }
+    }
+
+    private Asset getProfileImageAsset(DataItem dataItem) {
+        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+        return dataMapItem.getDataMap().getAsset("image");
     }
 
     private Bitmap loadBitmapFromAsset(Asset asset) {
