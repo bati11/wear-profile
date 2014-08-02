@@ -196,6 +196,8 @@ public class ProfileActivity extends FragmentActivity implements
 
             PutDataRequest request = dataMapRequest.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+
+            final Context context = this;
             pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                 @Override
                 public void onResult(DataApi.DataItemResult dataItemResult) {
@@ -211,6 +213,7 @@ public class ProfileActivity extends FragmentActivity implements
                     pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                         @Override
                         public void onResult(DataApi.DataItemResult dataItemResult) {
+                            Toast.makeText(context, "sync success!", Toast.LENGTH_LONG).show();
                         }
                     });
                 }
