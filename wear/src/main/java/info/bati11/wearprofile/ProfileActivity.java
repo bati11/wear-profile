@@ -129,16 +129,18 @@ public class ProfileActivity extends Activity
 
                         CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
                         adapter.changeProfile(name, description);
-                        if (adapter.getEnableCardCount() == 2) gridViewPager.setSwipable(true);
+                        if (adapter.getEnableCardCount() >= 2) gridViewPager.setSwipable(true);
                         else                                   gridViewPager.setSwipable(false);
 
                         dotLayout.removeAllViews();
-                        for (int j = 0; j < 2; j++) {
-                            Button button = new Button(context);
-                            configDot(button, 4, 4);
-                            dotLayout.addView(button);
+                        if (adapter.getEnableCardCount() >= 2) {
+                            for (int j = 0; j < adapter.getEnableCardCount(); j++) {
+                                Button button = new Button(context);
+                                configDot(button, 4, 4);
+                                dotLayout.addView(button);
+                            }
+                            configDot((Button) dotLayout.getChildAt(0), 6, 2);
                         }
-                        configDot((Button)dotLayout.getChildAt(0), 6, 2);
                         gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
