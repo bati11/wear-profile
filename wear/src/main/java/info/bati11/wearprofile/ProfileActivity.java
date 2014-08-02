@@ -7,9 +7,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.wearable.view.GridViewPager;
 import android.support.wearable.view.WatchViewStub;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -42,6 +47,7 @@ public class ProfileActivity extends Activity
 
     private ViewGroup layout;
     private CardGridViewPager gridViewPager;
+    private ViewGroup dotLayout;
 
     private ProfileFragment fragment;
 
@@ -67,6 +73,26 @@ public class ProfileActivity extends Activity
                 gridViewPager = (CardGridViewPager)layout.findViewById(R.id.pager);
                 gridViewPager.setVisibility(View.INVISIBLE);
                 gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), "", ""));
+                gridViewPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int i, int i2, float v, float v2, int i3, int i4) {
+                    }
+
+                    @Override
+                    public void onPageSelected(int i, int i2) {
+                        for(int j = 0; j < dotLayout.getChildCount(); j++){
+                            configDot((Button) dotLayout.getChildAt(j), 4, 4);
+                        }
+                        if(dotLayout.getChildCount() > i) {
+                            configDot((Button) dotLayout.getChildAt(i2), 6, 2);
+                        }
+                    }
+
+                    @Override
+                    public void onPageScrollStateChanged(int i) {
+                    }
+                });
+                dotLayout = (ViewGroup)stub.findViewById(R.id.dotLayout);
             }
         });
     }
@@ -103,8 +129,16 @@ public class ProfileActivity extends Activity
 
                         CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
                         adapter.changeProfile(name, description);
-                        if (adapter.getEnableCardCount() > 1) gridViewPager.setSwipable(true);
-                        else                                  gridViewPager.setSwipable(false);
+                        if (adapter.getEnableCardCount() == 2) gridViewPager.setSwipable(true);
+                        else                                   gridViewPager.setSwipable(false);
+
+                        dotLayout.removeAllViews();
+                        for (int j = 0; j < 2; j++) {
+                            Button button = new Button(context);
+                            configDot(button, 4, 4);
+                            dotLayout.addView(button);
+                        }
+                        configDot((Button)dotLayout.getChildAt(0), 6, 2);
                         gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
@@ -186,5 +220,17 @@ public class ProfileActivity extends Activity
 
         if (assetInputStream == null) return null;
         else                          return BitmapFactory.decodeStream(assetInputStream);
+    }
+
+    private void configDot(Button b, int size, int margin){
+        b.setBackground(getResources().getDrawable(R.drawable.circle));
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(getPxFromDp(size), getPxFromDp(size));
+        p.gravity = Gravity.CENTER;
+        p.setMargins(margin, 0, margin, 0);
+        b.setLayoutParams(p);
+    }
+
+    private int getPxFromDp(int dp){
+        return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
 }
