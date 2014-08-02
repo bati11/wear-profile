@@ -175,7 +175,6 @@ public class ProfileActivity extends Activity
                         @Override
                         public void run() {
                             changeProfile(pair._1, pair._2);
-                            gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), pair._1, pair._2));
                             changePagerSwipable();
                             changeDotLayout();
                         }
@@ -239,8 +238,7 @@ public class ProfileActivity extends Activity
     }
 
     public void changeProfile(String name, String description) {
-        CardFragmentGridPagerAdapter adapter = (CardFragmentGridPagerAdapter) gridViewPager.getAdapter();
-        adapter.changeProfile(name, description);
+        gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), name, description));
     }
 
     private void changePagerSwipable() {

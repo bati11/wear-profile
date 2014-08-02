@@ -56,21 +56,4 @@ public class CardFragmentGridPagerAdapter extends FragmentGridPagerAdapter {
         if (!"".equals(description)) result++;
         return result;
     }
-
-    public void changeProfile(String name, String description) {
-        if (name == null) throw new IllegalArgumentException("name is not null");
-        if (description == null) throw new IllegalArgumentException("description is not null");
-        this.name = name;
-        this.description = description;
-        if(nameFragment == null) {
-            nameFragment = ProfileFragment.newInstance(name);
-        } else {
-            nameFragment.changeContent(name);
-        }
-        if(descriptionFragment == null) {
-            descriptionFragment.newInstance(description);
-        } else {
-            descriptionFragment.changeContent(description);
-        }
-    }
 }
