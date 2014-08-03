@@ -60,11 +60,17 @@ public class InputFragment extends android.support.v4.app.Fragment {
         syncButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final Bitmap bitmap;
+                if (imageView.getDrawable() == null) {
+                    bitmap = null;
+                } else {
+                    bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                }
                 profileFragmentListener.onClickSync(
                         view,
                         nameEditTextView.getText().toString(),
                         descriptionEditTextView.getText().toString(),
-                        ((BitmapDrawable)imageView.getDrawable()).getBitmap());
+                        bitmap);
             }
         });
         return view;
