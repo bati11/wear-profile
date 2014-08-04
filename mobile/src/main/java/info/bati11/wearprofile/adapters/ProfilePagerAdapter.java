@@ -38,7 +38,7 @@ public class ProfilePagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         CharSequence title;
-        if (position == 0) title = "input";
+        if (position == 0) title = "enter";
         else              title = "twitter";
         return title;
     }

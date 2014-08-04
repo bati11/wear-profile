@@ -31,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
-        android:hint="self-introduction"
+        android:hint="description"
         android:id="@+id/twitter_description_edit_text" />
 
     <LinearLayout
