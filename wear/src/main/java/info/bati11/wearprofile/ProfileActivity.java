@@ -69,8 +69,7 @@ public class ProfileActivity extends Activity
             public void onLayoutInflated(WatchViewStub stub) {
                 layout = (ViewGroup) stub.findViewById(R.id.layout);
                 gridViewPager = (CardGridViewPager) layout.findViewById(R.id.pager);
-                gridViewPager.setVisibility(View.INVISIBLE);
-                gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), "", ""));
+                gridViewPager.setAdapter(new CardFragmentGridPagerAdapter(getFragmentManager(), "no name", ""));
                 gridViewPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
                     @Override
                     public void onPageScrolled(int i, int i2, float v, float v2, int i3, int i4) {
@@ -123,7 +122,6 @@ public class ProfileActivity extends Activity
                     if (dataItem.getUri().getPath().equals("/profile/info")) {
                         Pair<String, String> pair = getNameDescriptionPair(dataItem);
                         changeProfile(pair._1, pair._2);
-                        gridViewPager.setVisibility(View.VISIBLE);
 
                     } else if (dataItem.getUri().getPath().equals("/profile/image")) {
                         final Asset profileImage = getProfileImageAsset(dataItem);
