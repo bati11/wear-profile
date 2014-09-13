@@ -63,6 +63,7 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @Override
@@ -167,14 +168,13 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
 
         @Override
         protected void onPostExecute(Map<String, String> map) {
-            if (loadDialogFragment.getDialog() != null) loadDialogFragment.getDialog().dismiss();
             if (map == null) {
+                if (loadDialogFragment.getDialog() != null) loadDialogFragment.getDialog().dismiss();
                 Toast.makeText(context, "error", Toast.LENGTH_LONG).show();
             } else {
                 twitterNameEditText.setText("@" + map.get("screenName"));
                 twitterDescriptionTextView.setText(map.get("description"));
                 profileImageTask.execute(map.get("biggerProfileImageURL"));
-                syncButton.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -206,6 +206,8 @@ public class LoadTwitterFragment extends android.support.v4.app.Fragment {
         protected void onPostExecute(final Bitmap bm) {
             bitmap = bm;
             imageView.setImageBitmap(bitmap);
+            syncButton.setVisibility(View.VISIBLE);
+            if (loadDialogFragment.getDialog() != null) loadDialogFragment.getDialog().dismiss();
         }
     }
 }

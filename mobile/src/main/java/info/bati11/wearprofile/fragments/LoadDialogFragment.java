@@ -20,6 +20,7 @@ public class LoadDialogFragment extends DialogFragment {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         }
         setCancelable(false);
+        setRetainInstance(true);
         return progressDialog;
     }
 
